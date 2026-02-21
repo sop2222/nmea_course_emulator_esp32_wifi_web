@@ -142,3 +142,4 @@ Example: `$HEHDT,285.3,T\r\n` — true heading 285.3 °, no checksum
 ## License
 
 MIT
+=======
