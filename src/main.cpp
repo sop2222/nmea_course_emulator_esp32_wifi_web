@@ -20,6 +20,7 @@
 #include <WiFi.h>
 #include <WebServer.h>
 #include "web_page.h"
+#include "func_page.h"
 
 // ---------------------------------------------------------------------------
 // Configuration
@@ -232,6 +233,11 @@ static void setup_server() {
     // Serve the knob page
     server.on("/", HTTP_GET, []() {
         server.send(200, "text/html", WEB_PAGE);
+    });
+
+    // Serve the function-generator page
+    server.on("/addfunction", HTTP_GET, []() {
+        server.send(200, "text/html", FUNC_PAGE);
     });
 
     // Receive the completed 125-heading sequence

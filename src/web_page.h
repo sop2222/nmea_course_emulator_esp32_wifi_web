@@ -247,6 +247,11 @@ static const char WEB_PAGE[] = R"html(
     <div id="counter">Added: <strong id="cnt">0</strong> / 125</div>
 
     <div id="log"></div>
+
+    <p style="margin-top: 12px; font-size: 0.85em; text-align: center;">
+      <a id="func-link" href="/addfunction?h=000.0"
+         style="color: #58a6ff; text-decoration: none;">&#x2192; Function generator</a>
+    </p>
   </div>
 
   <!-- Confirmation (shown after 125 entries are sent) -->
@@ -338,6 +343,10 @@ static const char WEB_PAGE[] = R"html(
       ctx.fill();
 
       document.getElementById('heading-display').textContent = formatHeading(heading);
+
+      // Keep the function-generator link in sync with the current knob position
+      const fl = document.getElementById('func-link');
+      if (fl) fl.href = '/addfunction?h=' + heading.toFixed(1);
     }
 
     // --- Pointer input ---
