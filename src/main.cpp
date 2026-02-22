@@ -191,6 +191,27 @@ static void activate_default() {
     active_count   = DEFAULT_COUNT;
     sentence_index = 0;
 }
+// heading → "$HEHDT,xxx.x,T*CS\r\n"
+void makeHDT(float heading, char *out)
+{
+    // 1. Build the body without '$' and without checksum
+    //    Example: "HEHDT,331.9,T"
+    char body[32];
+    snprintf(body, sizeof(body), "HEHDT,%.1f,T", heading);
+
+    // 2. Compute XOR checksum
+    uint8_t cs = 0;
+    for (int i = 0; body[i] != 0; i++)
+        cs ^= body[i];
+
+    // 3. Convert checksum to two hex chars
+    char hex[3];
+    snprintf(hex, sizeof(hex), "%02X", cs);
+
+    // 4. Build final NMEA sentence
+    //    "$" + body + "*" + hex + "\r\n"
+    snprintf(out, 20, "$%s*%s\r\n", body, hex);
+}
 
 // Parse a comma-separated list of heading values from the POST body and
 // populate dyn_buf[], then make it the active table.
@@ -206,7 +227,8 @@ static void apply_uploaded_sequence(const String& body) {
         if (tok.length() == 0) break;
 
         float h = tok.toFloat();
-        snprintf(dyn_buf[count], sizeof(dyn_buf[count]), "$HEHDT,%.1f,T\r\n", h);
+        //snprintf(dyn_buf[count], sizeof(dyn_buf[count]), "$HEHDT,%.1f,T\r\n", h);
+        makeHDT(h, dyn_buf[count]);
         active[count] = dyn_buf[count];
         count++;
 
