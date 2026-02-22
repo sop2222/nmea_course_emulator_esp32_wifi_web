@@ -101,8 +101,8 @@ the balanced pair:
 6. The page sends the full sequence to the ESP32 automatically and confirms
    with *"Array updated — 125 sentences loaded"*.
    The new sequence is active immediately; the default is restored on next reboot.
-4a. Alternatively: drag the compass needle to the desired heading → tap **functions** and adjust sliders to oscillate in various ways around the initial value (can be corrected from keyboard or whatever your input method for text is).
-5b. No need to repeat **125** times, just press the button and go to `6`.
+7. (4a) Alternatively: drag the compass needle to the desired heading → tap **functions** and adjust sliders to oscillate in various ways around the initial value (can be corrected from keyboard or whatever your input method for text is).
+8. (5a) No need to repeat **125** times, just press the button and go to `6`.
 
 The web UI works on mobile (touch-drag supported) and desktop browsers.
 
