@@ -83,6 +83,68 @@ static const char WEB_PAGE[] = R"html(
       cursor: default;
     }
 
+    #drift-section {
+      width: 240px;
+      margin-bottom: 12px;
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      padding: 10px 12px;
+    }
+
+    #drift-section .drift-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      font-size: 0.9em;
+      color: #c9d1d9;
+      margin-bottom: 0;
+      user-select: none;
+    }
+
+    #drift-section input[type="checkbox"] {
+      width: 15px;
+      height: 15px;
+      accent-color: #58a6ff;
+      cursor: pointer;
+    }
+
+    #drift-slider-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 30px;
+      opacity: 0.3;
+      pointer-events: none;
+      transition: opacity 0.15s ease;
+    }
+
+    #drift-slider-row.enabled {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    #drift-slider-row .drift-label {
+      font-size: 0.78em;
+      color: #8b949e;
+      white-space: nowrap;
+    }
+
+    #drift-val {
+      font-size: 0.85em;
+      color: #58a6ff;
+      font-family: monospace;
+      float: right;
+      min-width: 54px;
+      text-align: center;
+    }
+
+    #drift-slider {
+      flex: 1;
+      accent-color: #58a6ff;
+    }
+
     #progress-bar-track {
       width: 240px;
       height: 6px;
@@ -164,6 +226,20 @@ static const char WEB_PAGE[] = R"html(
     <canvas id="knob" width="240" height="240"></canvas>
     <div id="heading-display">000.0&deg;</div>
     <button id="add-btn" onclick="addHeading()">Add to sequence</button>
+
+    <!-- Drift controls -->
+    <div id="drift-section">
+      <span style="float:left;"><label class="drift-toggle">
+        <input type="checkbox" id="drift-checkbox" onchange="toggleDrift()">
+        Drift
+      </label></span>
+        <span id="drift-val">+1.0&deg;</span>
+      <div id="drift-slider-row">
+        <span class="drift-label">Drift adjust</span>
+        <input type="range" id="drift-slider" min="-2.0" max="2.0" step="0.1" value="1.0"
+               oninput="updateDriftVal(this.value)" disabled>
+      </div>
+    </div>
 
     <div id="progress-bar-track">
       <div id="progress-bar-fill"></div>
@@ -301,6 +377,20 @@ static const char WEB_PAGE[] = R"html(
     }, { passive: false });
     document.addEventListener('touchend', () => { dragging = false; });
 
+    // --- Drift controls ---
+    function toggleDrift() {
+      const on  = document.getElementById('drift-checkbox').checked;
+      const row = document.getElementById('drift-slider-row');
+      const sl  = document.getElementById('drift-slider');
+      row.classList.toggle('enabled', on);
+      sl.disabled = !on;
+    }
+
+    function updateDriftVal(v) {
+      const n = parseFloat(v);
+      document.getElementById('drift-val').textContent = (n >= 0 ? '+' : '') + n.toFixed(1) + '\u00b0';
+    }
+
     // --- Add heading to sequence ---
     function addHeading() {
       if (collected.length >= 125) return;
@@ -313,15 +403,23 @@ static const char WEB_PAGE[] = R"html(
       document.getElementById('progress-bar-fill').style.width = (count / 125 * 100) + '%';
 
       // Append to log; highlight the newest entry
-      const log     = document.getElementById('log');
-      const prev    = log.querySelector('.last');
+      const log  = document.getElementById('log');
+      const prev = log.querySelector('.last');
       if (prev) prev.classList.remove('last');
 
-      const entry         = document.createElement('div');
-      entry.className     = 'log-entry last';
-      entry.textContent   = count + '. ' + formatHeading(heading);
+      const entry       = document.createElement('div');
+      entry.className   = 'log-entry last';
+      entry.textContent = count + '. ' + formatHeading(heading);
       log.appendChild(entry);
       log.scrollTop = log.scrollHeight;
+
+      // If drift is on, advance the knob by the drift amount for the next entry
+      if (document.getElementById('drift-checkbox').checked) {
+        const delta = parseFloat(document.getElementById('drift-slider').value);
+        heading = ((heading + delta) % 360 + 360) % 360;
+        heading = Math.round(heading * 10) / 10;
+        drawKnob();
+      }
 
       if (count >= 125) {
         document.getElementById('add-btn').disabled = true;
