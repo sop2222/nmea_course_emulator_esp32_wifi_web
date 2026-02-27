@@ -24,14 +24,34 @@
 
 // ---------------------------------------------------------------------------
 // Configuration
+//
+// Defaults match the Air-m2m Core ESP32-C3.  Override any of these from
+// platformio.ini build_flags for other boards (see env: sections there).
 // ---------------------------------------------------------------------------
 
 // Transmission interval — matches sleep(0.1) in db9.py.
 const uint32_t TX_INTERVAL_MS = 100;
 
-// UART1 pins on the Air-m2m Core ESP32-C3.
+// UART1 pin assignment.  RX is defined but not wired — output is TX-only.
+#ifndef NMEA_UART_TX_PIN
 #define NMEA_UART_TX_PIN  4
-#define NMEA_UART_RX_PIN  5   // not used — output is TX-only
+#endif
+#ifndef NMEA_UART_RX_PIN
+#define NMEA_UART_RX_PIN  5
+#endif
+
+// Onboard LED pin and polarity.
+// LED_PIN defaults to LED_BUILTIN from the board's pins_arduino.h.
+// Set LED_ACTIVE_LOW=1 for boards whose LED lights on LOW (e.g. Super Mini).
+#ifndef LED_PIN
+#define LED_PIN  LED_BUILTIN
+#endif
+#ifndef LED_ACTIVE_LOW
+#define LED_ACTIVE_LOW  0
+#endif
+
+#define LED_ON   (LED_ACTIVE_LOW ? LOW : HIGH)
+#define LED_OFF  (LED_ACTIVE_LOW ? HIGH : LOW)
 
 // Wi-Fi access point credentials.
 #define AP_SSID  "NMEA-EMU"
@@ -286,9 +306,9 @@ void setup() {
     // UART1 for NMEA output
     Serial1.begin(9600, SERIAL_8N1, NMEA_UART_RX_PIN, NMEA_UART_TX_PIN);
 
-    // Onboard LED (GPIO12 on AirM2M Core ESP32-C3)
-    pinMode(LED_BUILTIN, OUTPUT);
-    digitalWrite(LED_BUILTIN, LOW);
+    // Onboard LED
+    pinMode(LED_PIN, OUTPUT);
+    digitalWrite(LED_PIN, LED_OFF);
 
     activate_default();
 
@@ -312,9 +332,9 @@ void loop() {
 
     // Brief LED blink when the sequence wraps around to entry 0.
     if (sentence_index == 0) {
-        digitalWrite(LED_BUILTIN, HIGH);
+        digitalWrite(LED_PIN, LED_ON);
         delay(50);
-        digitalWrite(LED_BUILTIN, LOW);
+        digitalWrite(LED_PIN, LED_OFF);
     }
 
     delay(TX_INTERVAL_MS);
